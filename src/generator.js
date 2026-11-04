@@ -4,10 +4,12 @@ import { BOXES, boxOf, bit, colOf, rowOf } from './grid.js';
 import { logicSolve } from './logic.js';
 import { createRng } from './rng.js';
 
+// pairs — в скольких блоках лжец повторяет соседнюю цифру. Такая пара видна сразу и даёт вход в блок.
+// maxAssumptions — сколько рассуждений «допустим, что…» разрешено на всё поле.
 export const DIFFICULTIES = {
-  easy: { label: 'Лёгкий', clues: 42, maxAssumptions: 4, maxDeep: 0 },
-  medium: { label: 'Средний', clues: 36, maxAssumptions: 7, maxDeep: 0 },
-  hard: { label: 'Сложный', clues: 33, maxAssumptions: 16, maxDeep: 2 },
+  easy: { label: 'Лёгкий', clues: 40, pairs: 9, maxAssumptions: 0, maxDeep: 0 },
+  medium: { label: 'Средний', clues: 35, pairs: 5, maxAssumptions: 2, maxDeep: 0 },
+  hard: { label: 'Сложный', clues: 33, pairs: 2, maxAssumptions: 7, maxDeep: 0 },
 };
 
 const MIN_CLUES_PER_BOX = 3;
@@ -45,16 +47,23 @@ function attempt(settings, rng) {
   const solution = fullGrid(rng);
   const givens = [...solution];
   const liars = BOXES.map((box) => box[rng.int(9)]);
-  for (const cell of liars) {
-    const wrong = rng.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).find((digit) => digit !== solution[cell]);
-    givens[cell] = wrong;
-  }
+  const pairBoxes = new Set(rng.shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8]).slice(0, settings.pairs));
+  const partners = new Set();
+  liars.forEach((cell, box) => {
+    if (pairBoxes.has(box)) {
+      const partner = rng.shuffle(BOXES[box]).find((other) => other !== cell);
+      partners.add(partner);
+      givens[cell] = solution[partner];
+    } else {
+      givens[cell] = rng.shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).find((digit) => digit !== solution[cell]);
+    }
+  });
 
   const inBox = new Array(9).fill(9);
   let clues = 81;
   for (const cell of rng.shuffle(Array.from({ length: 81 }, (_, i) => i))) {
     if (clues <= settings.clues) break;
-    if (liars.includes(cell) || inBox[boxOf(cell)] <= MIN_CLUES_PER_BOX) continue;
+    if (liars.includes(cell) || partners.has(cell) || inBox[boxOf(cell)] <= MIN_CLUES_PER_BOX) continue;
     const kept = givens[cell];
     givens[cell] = 0;
     const result = logicSolve(givens);

@@ -20,6 +20,7 @@ function createState(givens) {
     cand: new Array(81).fill(ALL_DIGITS),
     settled: new Array(81).fill(false),
     announced: new Array(81).fill(false),
+    pairs: new Array(9).fill(false),
     steps: null,
   };
 }
@@ -29,6 +30,7 @@ const cloneState = (s) => ({
   cand: [...s.cand],
   settled: [...s.settled],
   announced: [...s.announced],
+  pairs: [...s.pairs],
   steps: null,
 });
 
@@ -105,6 +107,33 @@ function applyBoxRule(s) {
   return changed;
 }
 
+// Две одинаковые напечатанные цифры в блоке: лжец точно одна из них,
+// значит, все остальные напечатанные цифры этого блока правдивы.
+function applyPairRule(s) {
+  let changed = false;
+  for (let box = 0; box < 9; box++) {
+    if (s.pairs[box]) continue;
+    const clues = BOXES[box].filter((cell) => s.givens[cell]);
+    const first = clues.find((cell, index) => clues.slice(index + 1).some((c) => s.givens[c] === s.givens[cell]));
+    if (first === undefined) continue;
+    const digit = s.givens[first];
+    const pair = clues.filter((cell) => s.givens[cell] === digit);
+    s.pairs[box] = true;
+    for (const cell of clues) {
+      if (!pair.includes(cell) && !isTrue(s, cell)) assign(s, cell, s.givens[cell]);
+    }
+    record(s, {
+      kind: 'truth',
+      cell: pair[0],
+      digit,
+      related: pair.slice(1),
+      text: `В блоке ${box + 1} две цифры ${digit}: одна из них лжец. Значит, все остальные напечатанные цифры этого блока правдивы.`,
+    });
+    changed = true;
+  }
+  return changed;
+}
+
 function settleSingles(s) {
   let changed = false;
   for (let cell = 0; cell < 81; cell++) {
@@ -156,6 +185,7 @@ function propagate(s) {
   for (;;) {
     let changed = settleSingles(s);
     changed = applyBoxRule(s) || changed;
+    changed = applyPairRule(s) || changed;
     announceLiars(s);
     if (!changed) changed = hiddenSingles(s);
     if (!changed) return;

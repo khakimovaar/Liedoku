@@ -163,14 +163,21 @@ export function nextHint(game) {
           : `Клетка «${cellName(mistake.cell)}»: здесь неверная цифра.`,
     };
   }
-  for (const step of game.puzzle.steps) {
+  for (const [index, step] of game.puzzle.steps.entries()) {
     const state = game.cells[step.cell];
+    if (step.kind === 'truth' && !game.seen?.includes(index)) return { ...step, action: 'info', index };
     if (step.kind === 'liar' && !state.liar) return { ...step, action: 'mark' };
     if (step.kind === 'place' && effectiveValue(game, step.cell) !== step.digit) {
       return { ...step, action: 'place' };
     }
   }
   return null;
+}
+
+// Шаг-рассуждение ничего не меняет на поле, поэтому запоминаем, что его уже показали.
+export function markHintSeen(game, hint) {
+  game.seen = [...(game.seen ?? []), hint.index];
+  return true;
 }
 
 // Выполняет шаг подсказки за игрока.
@@ -183,6 +190,7 @@ export function applyHint(game, hint) {
     if (!game.puzzle.liars.includes(hint.cell)) state.liar = false;
     return true;
   }
+  if (hint.action === 'info') return markHintSeen(game, hint);
   if (hint.action === 'mark') return toggleLiar(game, hint.cell);
   return enterDigit(game, hint.cell, hint.digit);
 }

@@ -3,7 +3,7 @@ import { DIFFICULTIES, generate } from './generator.js';
 import { BOXES, boxOf, colOf, rowOf } from './grid.js';
 import {
   applyHint, checkBoard, clearCell, createGame, effectiveValue, enterDigit, findConflicts,
-  findMistakes, isComplete, isGiven, isWon, marksByBox, nextHint, redo, revealSolution,
+  findMistakes, isComplete, isGiven, isWon, markHintSeen, marksByBox, nextHint, redo, revealSolution,
   toggleLiar, toggleNote, undo,
 } from './game.js';
 import { createPolygraph } from './polygraph.js';
@@ -146,7 +146,7 @@ function render() {
   $('undo').disabled = !game.undo.length || Boolean(game.finished);
   $('redo').disabled = !game.redo.length || Boolean(game.finished);
   for (const id of ['hint', 'check', 'erase', 'reveal']) $(id).disabled = Boolean(game.finished);
-  $('hint-apply').hidden = !currentHint;
+  $('hint-apply').hidden = !currentHint?.action;
   $('level-tag').textContent = DIFFICULTIES[game.puzzle.difficulty].label;
   $('seed-tag').textContent = `№ ${game.puzzle.seed}`;
   $('timer').textContent = formatTime(game.elapsed);
@@ -319,7 +319,8 @@ function showHint() {
     return;
   }
   game.hints++;
-  currentHint = hint;
+  if (hint.action === 'info') markHintSeen(game, hint);
+  currentHint = hint.action === 'info' ? { ...hint, action: null } : hint;
   selected = hint.cell;
   say(hint.text);
   persist();

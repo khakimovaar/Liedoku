@@ -41,6 +41,30 @@ test('логика решает поле без угадывания', () => {
   }
 });
 
+test('лёгкий уровень не требует рассуждений от противного', () => {
+  for (let seed = 1; seed <= 60; seed++) {
+    const { assumptions, deepAssumptions } = generate('easy', seed);
+    assert.equal(assumptions + deepAssumptions, 0);
+  }
+});
+
+test('на лёгком уровне в каждом блоке есть пара одинаковых цифр', () => {
+  for (let seed = 1; seed <= 20; seed++) {
+    const { givens } = generate('easy', seed);
+    for (const box of BOXES) {
+      const digits = box.map((cell) => givens[cell]).filter(Boolean);
+      assert.ok(new Set(digits).size < digits.length);
+    }
+  }
+});
+
+test('рассуждений от противного становится больше с уровнем', () => {
+  const total = (difficulty) =>
+    puzzles.filter((p) => p.difficulty === difficulty).reduce((sum, p) => sum + p.assumptions, 0);
+  assert.ok(total('easy') <= total('medium'));
+  assert.ok(total('medium') <= total('hard'));
+});
+
 test('один сид всегда даёт одно и то же поле', () => {
   assert.deepEqual(generate('medium', 20261105).givens, generate('medium', 20261105).givens);
   assert.notDeepEqual(generate('medium', 1).givens, generate('medium', 2).givens);
