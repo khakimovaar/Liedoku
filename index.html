@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Лжедоку</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Судоку, в котором в каждом блоке одна стартовая цифра лжёт">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Unbounded:wght@700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header class="masthead">
+    <h1 aria-label="Лжедоку"><span class="lie">Лже</span>доку</h1>
+    <p>В каждом блоке одна напечатанная цифра лжёт.</p>
+  </header>
+
+  <section class="strip" aria-label="Состояние поля">
+    <div class="readout">
+      <span class="tag" id="level-tag">Лёгкий</span>
+      <span class="tag" id="seed-tag"></span>
+      <span class="reading">Время <b id="timer">00:00</b></span>
+      <span class="reading">Конфликтов <b id="tension">0</b></span>
+      <span class="reading">Лжецов <b id="found">0 из 9</b></span>
+    </div>
+    <canvas id="trace" aria-hidden="true"></canvas>
+  </section>
+
+  <main class="desk">
+    <div class="play">
+      <div class="sheet" id="sheet">
+        <div class="board" id="board" role="grid" aria-label="Игровое поле 9 на 9"></div>
+        <div class="result" id="result" hidden>
+          <h2>Все лжецы разоблачены</h2>
+          <dl>
+            <div><dt>Время</dt><dd id="result-time"></dd></div>
+            <div><dt>Подсказки</dt><dd id="result-hints"></dd></div>
+            <div><dt>Проверки</dt><dd id="result-checks"></dd></div>
+          </dl>
+          <button type="button" id="again" class="primary">Играть ещё</button>
+        </div>
+      </div>
+      <div class="message-row">
+        <p class="message" id="message" role="status" aria-live="polite"></p>
+        <button type="button" id="hint-apply" hidden>Сделать этот ход</button>
+      </div>
+      <div class="tools">
+        <button type="button" id="mark" class="accent" aria-pressed="false">Лжец</button>
+        <button type="button" id="notes" aria-pressed="false">Заметки</button>
+        <button type="button" id="erase">Стереть</button>
+        <button type="button" id="undo">Назад</button>
+        <button type="button" id="redo">Вперёд</button>
+        <button type="button" id="hint">Подсказка</button>
+        <button type="button" id="check">Проверить</button>
+      </div>
+      <div class="pad" id="pad"></div>
+    </div>
+
+    <aside class="side">
+      <section>
+        <h2>Правила</h2>
+        <ol class="rules">
+          <li>Заполните поле как обычное судоку: цифры 1–9 без повторов в рядах, столбцах и блоках 3×3.</li>
+          <li>В каждом блоке ровно одна напечатанная цифра ложна. Остальные верны.</li>
+          <li>Отметьте всех девятерых лжецов и впишите вместо них верные цифры.</li>
+        </ol>
+        <p class="note">Ответ единственный, а угадывать не нужно: генератор проверяет каждое поле логикой.</p>
+      </section>
+
+      <section>
+        <h2>Протокол по блокам</h2>
+        <div class="protocol" id="protocol"></div>
+      </section>
+
+      <section class="actions">
+        <h2>Партия</h2>
+        <div class="levels" role="group" aria-label="Сложность новой партии">
+          <button type="button" data-level="easy" aria-pressed="true">Лёгкий</button>
+          <button type="button" data-level="medium" aria-pressed="false">Средний</button>
+          <button type="button" data-level="hard" aria-pressed="false">Сложный</button>
+        </div>
+        <div class="grid-buttons">
+          <button type="button" id="new" class="primary">Новая игра</button>
+          <button type="button" id="daily">Поле дня</button>
+          <button type="button" id="copy">Ссылка на поле</button>
+          <button type="button" id="reveal">Показать ответ</button>
+        </div>
+        <label class="toggle"><input type="checkbox" id="show-conflicts" checked> Подсвечивать конфликты</label>
+      </section>
+
+      <section>
+        <h2>Рекорды</h2>
+        <table class="records">
+          <thead><tr><th scope="col">Уровень</th><th scope="col">Побед</th><th scope="col">Лучшее время</th></tr></thead>
+          <tbody id="stats"></tbody>
+        </table>
+      </section>
+
+      <section class="keys">
+        <h2>Клавиатура</h2>
+        <p><kbd>1–9</kbd> цифра, <kbd>L</kbd> лжец, <kbd>N</kbd> заметки, стрелки перемещают, <kbd>Ctrl+Z</kbd> отмена.</p>
+      </section>
+    </aside>
+  </main>
+</div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
