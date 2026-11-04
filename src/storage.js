@@ -1,5 +1,5 @@
 // Сохранение в браузере. Если хранилище недоступно, игра продолжает работать без него.
-const GAME_KEY = 'lzhedoku.game.v2';
+const GAME_KEY = 'lzhedoku.game.v3';
 const STATS_KEY = 'lzhedoku.stats.v1';
 
 function read(key) {

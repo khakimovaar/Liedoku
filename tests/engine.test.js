@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { DIFFICULTIES, generate } from '../src/generator.js';
-import { BOXES, boxOf, COLS, ROWS } from '../src/grid.js';
+import { BOXES, boxOf, colOf, COLS, rowOf, ROWS } from '../src/grid.js';
 import { logicSolve } from '../src/logic.js';
 import { createRng } from '../src/rng.js';
 import { countSolutions } from '../src/verify.js';
@@ -63,6 +63,23 @@ test('рассуждений от противного становится бо
     puzzles.filter((p) => p.difficulty === difficulty).reduce((sum, p) => sum + p.assumptions, 0);
   assert.ok(total('easy') <= total('medium'));
   assert.ok(total('medium') <= total('hard'));
+});
+
+test('на лёгком уровне лжеца выдаёт правдивая цифра на его линии', () => {
+  const twins = (puzzle, cell) =>
+    [...ROWS[rowOf(cell)], ...COLS[colOf(cell)]].filter(
+      (other) => boxOf(other) !== boxOf(cell) && puzzle.givens[other] === puzzle.givens[cell],
+    );
+  for (let seed = 1; seed <= 30; seed++) {
+    const puzzle = generate('easy', seed);
+    for (const liar of puzzle.liars) {
+      assert.ok(twins(puzzle, liar).some((cell) => !puzzle.liars.includes(cell)));
+      const partner = BOXES[boxOf(liar)].find(
+        (cell) => cell !== liar && puzzle.givens[cell] === puzzle.givens[liar],
+      );
+      assert.equal(twins(puzzle, partner).length, 0);
+    }
+  }
 });
 
 test('один сид всегда даёт одно и то же поле', () => {
