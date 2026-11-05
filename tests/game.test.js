@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  applyHint, clearCell, createGame, effectiveValue, enterDigit, findConflicts, findMistakes,
+  applyHint, clearCell, createGame, effectiveValue, enterDigit, findConflicts, findEmptyCells, findMistakes,
   isComplete, isWon, marksByBox, nextHint, redo, revealSolution, toggleLiar, toggleNote, undo,
 } from '../src/game.js';
 import { generate } from '../src/generator.js';
@@ -101,6 +101,27 @@ test('подсказка сначала показывает ошибку игр
   assert.equal(hint.cell, emptyCell);
   applyHint(game, hint);
   assert.equal(game.cells[emptyCell].value, 0);
+});
+
+test('отмеченный лжец без новой цифры считается пустой клеткой', () => {
+  const game = newGame();
+  const before = findEmptyCells(game).length;
+  toggleLiar(game, liar);
+  assert.equal(findEmptyCells(game).length, before + 1);
+  assert.ok(findEmptyCells(game).includes(liar));
+});
+
+test('партия завершается победой, только когда вписан последний лжец', () => {
+  const game = newGame();
+  for (let cell = 0; cell < 81; cell++) {
+    if (cell === liar || (puzzle.givens[cell] && !puzzle.liars.includes(cell))) continue;
+    enterDigit(game, cell, puzzle.solution[cell]);
+  }
+  toggleLiar(game, liar);
+  assert.equal(isComplete(game), false);
+  enterDigit(game, liar, puzzle.solution[liar]);
+  assert.equal(isComplete(game), true);
+  assert.equal(isWon(game), true);
 });
 
 test('показанный ответ совпадает с решением', () => {

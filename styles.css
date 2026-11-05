@@ -98,7 +98,6 @@ h1 { margin: 0; font: 700 clamp(26px, 5vw, 36px)/1.1 var(--display); letter-spac
   position: absolute; left: 8%; top: 7%; font-size: 0.5em; color: var(--pen);
   text-decoration: line-through; text-decoration-thickness: 2px;
 }
-.cell.liar:not(:has(.written)) .printed { position: static; font-size: 1em; }
 .cell.liar { background: var(--pen-soft); }
 .cell.liar.selected { box-shadow: inset 0 0 0 2px var(--pen); }
 .cell.conflict::after {

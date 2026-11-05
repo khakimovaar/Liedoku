@@ -111,6 +111,10 @@ export function findConflicts(game) {
   return conflicts;
 }
 
+// Клетки, в которых пока нет цифры. Отмеченный лжец без вписанной цифры тоже считается пустым.
+export const findEmptyCells = (game) =>
+  game.cells.flatMap((_, cell) => (effectiveValue(game, cell) ? [] : [cell]));
+
 // Сколько лжецов отмечено в каждом блоке.
 export const marksByBox = (game) =>
   BOXES.map((box) => box.filter((cell) => isGiven(game, cell) && game.cells[cell].liar).length);

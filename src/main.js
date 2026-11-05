@@ -3,7 +3,7 @@ import { DIFFICULTIES, generate } from './generator.js';
 import { BOXES, boxOf, colOf, rowOf } from './grid.js';
 import {
   applyHint, checkBoard, clearCell, createGame, effectiveValue, enterDigit, findConflicts,
-  findMistakes, isComplete, isGiven, isWon, markHintSeen, marksByBox, nextHint, redo, revealSolution,
+  findEmptyCells, findMistakes, isComplete, isGiven, isWon, markHintSeen, marksByBox, nextHint, redo, revealSolution,
   toggleLiar, toggleNote, undo,
 } from './game.js';
 import { createPolygraph } from './polygraph.js';
@@ -135,6 +135,7 @@ function render() {
   const total = marks.filter((count) => count > 0).length;
   $('found').textContent = `${total} из 9`;
   $('tension').textContent = `${conflicts.size}`;
+  $('left').textContent = `${findEmptyCells(game).length}`;
   polygraph.setTension(conflicts.size);
   if (conflicts.size > lastConflicts) polygraph.jolt(0.9);
   lastConflicts = conflicts.size;
@@ -352,7 +353,20 @@ function bindControls() {
   $('check').addEventListener('click', () => {
     const count = checkBoard(game);
     flagged = new Set(findMistakes(game).map((mistake) => mistake.cell));
-    say(count ? `Ошибок на поле: ${count}. Они отмечены кружками.` : 'Пока ошибок нет.', count ? 'warn' : 'good');
+    const empty = findEmptyCells(game);
+    if (count) {
+      say(`Ошибок на поле: ${count}. Они отмечены кружками.`, 'warn');
+    } else if (empty.length) {
+      if (empty.length <= 3) flagged = new Set(empty);
+      say(
+        empty.length <= 3
+          ? `Ошибок нет. Пустых клеток: ${empty.length}. Они отмечены кружками.`
+          : `Ошибок нет. Пустых клеток: ${empty.length}.`,
+        'good',
+      );
+    } else {
+      say('Ошибок нет.', 'good');
+    }
     persist();
     render();
   });
